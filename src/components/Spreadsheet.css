@@ -1,0 +1,111 @@
+.spreadsheet {
+  overflow: hidden;
+  white-space: nowrap;
+  border-top: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+}
+
+.spreadsheet-body {
+  overflow: auto;
+  max-height: 500px;
+}
+
+.spreadsheet-row {
+  display: flex;
+}
+
+.header-row {
+  position: sticky;
+  top: 0;
+  background-color: #f3f3f3;
+  z-index: 2;
+}
+
+.corner-cell {
+  width: 50px;
+  min-width: 50px;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background-color: #f3f3f3;
+}
+
+.header-cell,
+.row-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  background-color: #f3f3f3;
+  font-weight: bold;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.row-header {
+  width: 50px;
+  min-width: 50px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+}
+
+.spreadsheet-cell {
+  height: 25px;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  box-sizing: border-box;
+}
+
+.spreadsheet-cell input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 4px;
+  box-sizing: border-box;
+}
+
+.cell-content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  box-sizing: border-box;
+  cursor: text;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.spreadsheet input:focus {
+  outline: 2px solid #4caf50;
+  z-index: 2;
+}
+
+.column-resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 3;
+}
+
+.row-resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  cursor: row-resize;
+  z-index: 3;
+}
+
+.column-resize-handle:hover,
+.row-resize-handle:hover {
+  background-color: #4caf50;
+}
