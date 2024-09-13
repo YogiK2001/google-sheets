@@ -10,6 +10,10 @@ const SpreadsheetSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    cells: {
+        type: Object,
+        default: {},
+    },
     sharedWith: [{
         user: {
             type: mongoose.Schema.Types.ObjectId,
@@ -21,10 +25,6 @@ const SpreadsheetSchema = new mongoose.Schema({
             default: 'view',
         },
     }],
-    data: {
-        type: Object,
-        default: {},
-    },
     createdAt: {
         type: Date,
         default: Date.now,

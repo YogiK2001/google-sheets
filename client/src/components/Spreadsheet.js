@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import './Spreadsheet.css';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
-const socket = io('http://localhost:5000', {
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+const socket = io(BACKEND_URL, {
     withCredentials: true,
     transports: ['websocket']
 });
@@ -12,9 +14,9 @@ const Spreadsheet = ({ id }) => {
     const [cells, setCells] = useState({});
     const [activeCell, setActiveCell] = useState(null);
     const [columnWidths, setColumnWidths] = useState({});
-    const [headerHeight, setHeaderHeight] = useState(25); // Default header height
-    const [shareEmail, setShareEmail] = useState('');
-    const [shareAccess, setShareAccess] = useState('view');
+    const [headerHeight, setHeaderHeight] = useState(25);
+    const [shareLink, setShareLink] = useState('');
+    const [activeUsers, setActiveUsers] = useState([]);
     const rows = 20;
     const cols = 26;
     const defaultColumnWidth = 100;
@@ -34,6 +36,9 @@ const Spreadsheet = ({ id }) => {
         setCells(initialCells);
         setColumnWidths(initialColumnWidths);
 
+        const userId = uuidv4();
+        socket.emit('joinSpreadsheet', { spreadsheetId: id, userId });
+
         socket.on('cellUpdated', (data) => {
             setCells(prevCells => ({
                 ...prevCells,
@@ -41,10 +46,19 @@ const Spreadsheet = ({ id }) => {
             }));
         });
 
+        socket.on('activeUsers', (users) => {
+            setActiveUsers(users);
+        });
+
+        const shareLink = `${process.env.REACT_APP_FRONTEND_URL || window.location.origin}/spreadsheet/${id}`;
+        setShareLink(shareLink);
+
         return () => {
             socket.off('cellUpdated');
+            socket.off('activeUsers');
+            socket.emit('leaveSpreadsheet', { spreadsheetId: id, userId });
         };
-    }, []);
+    }, [id]);
 
     const handleCellChange = (row, col, value) => {
         const cellId = `${row}-${col}`;
@@ -57,19 +71,7 @@ const Spreadsheet = ({ id }) => {
             return newCells;
         });
 
-        socket.emit('cellUpdate', { cellId, value });
-    };
-
-    const handleShare = async (e) => {
-        e.preventDefault();
-        try {
-            await axios.post(`/api/spreadsheets/${id}/share`, { email: shareEmail, access: shareAccess });
-            alert('Spreadsheet shared successfully');
-            setShareEmail('');
-        } catch (err) {
-            console.error('Error sharing spreadsheet:', err);
-            alert('Error sharing spreadsheet');
-        }
+        socket.emit('cellUpdate', { spreadsheetId: id, cellId, value });
     };
 
     const handleCellFocus = (cellId) => {
@@ -180,26 +182,17 @@ const Spreadsheet = ({ id }) => {
     };
 
     return (
-        <div className="spreadsheet">
-            {renderHeaders()}
-            <div className="spreadsheet-body">
-                {renderRows()}
+        <div>
+            <nav>
+                <div>Active Users: {activeUsers.length}</div>
+                <div>Share Link: <input readOnly value={shareLink} /></div>
+            </nav>
+            <div className="spreadsheet">
+                {renderHeaders()}
+                <div className="spreadsheet-body">
+                    {renderRows()}
+                </div>
             </div>
-            <form onSubmit={handleShare}>
-                <input
-                    type="email"
-                    value={shareEmail}
-                    onChange={(e) => setShareEmail(e.target.value)}
-                    placeholder="Email to share with"
-                    required
-                />
-                <select value={shareAccess} onChange={(e) => setShareAccess(e.target.value)}>
-                    <option value="view">View</option>
-                    <option value="edit">Edit</option>
-                </select>
-                <button type="submit">Share</button>
-            </form>
-
         </div>
     );
 };
